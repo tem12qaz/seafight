@@ -75,45 +75,95 @@ class Cell:
         return [cls() for i in range(10)]
 
     @staticmethod
-    def right(cell):
+    def right(cell, jump=True):
         char = cell[0]
         char_index = chars.index(char) + 1
         if char_index == len(chars):
-            return 'A' + (cell[1] if len(cell) == 2 else cell[1:3])
+            if jump:
+                return 'A' + (cell[1] if len(cell) == 2 else cell[1:3])
+            else:
+                return cell
         else:
             return chars[char_index] + (cell[1] if len(cell) == 2 else cell[1:3])
 
     @staticmethod
-    def left(cell):
+    def left(cell, jump=True):
         char = cell[0]
         char_index = chars.index(char) - 1
+        if char == 'A' and not jump:
+            return cell
         return chars[char_index] + (cell[1] if len(cell) == 2 else cell[1:3])
 
     @staticmethod
-    def up(cell):
+    def up(cell, jump=True):
         if len(cell) == 3:
             num = '10'
         else:
             num = cell[1]
+            if num == '1' and not jump:
+                return cell
         return cell[0] + (str(int(num) - 1) if num != '1' else '10')
 
     @staticmethod
-    def down(cell):
+    def down(cell, jump=True):
         if len(cell) == 3:
             num = '10'
+            if not jump:
+                return cell
         else:
             num = cell[1]
         return cell[0] + (str(int(num) + 1) if num != '10' else '1')
+
+    @classmethod
+    def get_cells_around(cls, cell):
+        cells = [cell, cls.up(cell, jump=False), cls.down(cell, jump=False)]
+        for cell in cells[:3]:
+            cells.append(cls.right(cell, jump=False))
+            cells.append(cls.left(cell, jump=False))
+        return list(set(cells))
 
 
 class Move:
     def __init__(self, table):
         self.table = table
         self.selected = 'A1'
+        self.place_orientation = True
+        self.place_on = ['A1']
+
+    def update_place(self, ship=None, new_selected=None):
+        if ship is None:
+            ship = self.table.ship_to_place
+
+        old_place_on = self.place_on
+        self.place_on = [new_selected if new_selected is not None else self.selected]
+        if ship == 1:
+            return True
+        else:
+            if self.place_orientation:
+                for i in range(ship-1):
+                    next_value = Cell.down(self.place_on[-1])
+                    if '1' in next_value:
+                        self.place_on = old_place_on
+                        if not new_selected:
+                            self.place_orientation = not self.place_orientation
+                        return False
+                    self.place_on.append(next_value)
+
+            else:
+                for i in range(ship-1):
+                    next_value = Cell.right(self.place_on[-1])
+                    if 'A' in next_value:
+                        self.place_on = old_place_on
+                        if not new_selected:
+                            self.place_orientation = not self.place_orientation
+                        return False
+                    self.place_on.append(next_value)
+
+            return True
 
     def on_press(self, key):
         key_str = str(key)
-        if not (self.table.wait_for_shot or self.table.wait_for_place):
+        if not (self.table.wait_for_shot or self.table.ship_to_place):
             return
 
         elif key_str == 'Key.right':
@@ -135,29 +185,40 @@ class Move:
             self.rotate()
 
     def right(self):
-        self.selected = Cell.right(self.selected)
+        new_selected = Cell.right(self.selected)
+        if self.table.ship_to_place and self.update_place(new_selected=new_selected):
+            self.selected = new_selected
 
     def left(self):
-        self.selected = Cell.left(self.selected)
+        new_selected = Cell.left(self.selected)
+        if self.table.ship_to_place and self.update_place(new_selected=new_selected):
+            self.selected = new_selected
 
     def up(self):
-        self.selected = Cell.up(self.selected)
+        new_selected = Cell.up(self.selected)
+        if self.table.ship_to_place and self.update_place(new_selected=new_selected):
+            self.selected = new_selected
 
     def down(self):
-        self.selected = Cell.down(self.selected)
+        new_selected = Cell.down(self.selected)
+        if self.table.ship_to_place and self.update_place(new_selected=new_selected):
+            self.selected = new_selected
 
     def rotate(self):
-        pass
+        self.place_orientation = not self.place_orientation
+        if self.table.ship_to_place:
+            self.update_place()
 
     def select(self):
-        self.table.select()
+        if self.table.ship_to_place and self.table.check_cells_to_place():
+            self.table.place()
 
 
 class Field:
     def __init__(self):
         self.grid = {}
-        self.wait_for_place = False
         self.wait_for_shot = False
+        self.ship_to_place = None
 
         for char in chars:
             self.grid[char] = {x: y for x, y in zip(range(1, 11), Cell.empty_col())}
@@ -165,12 +226,41 @@ class Field:
         self.move = Move(self)
         self.listener = get_listener(self)
         self.listener.start()
+        self.get_ship = self.place_ships()
+
+    def get_cell_by_str(self, cell_str):
+        if len(cell_str) == 3:
+            cell = self.grid[cell_str[0]][10]
+        else:
+            cell = self.grid[cell_str[0]][int(cell_str[1])]
+        return cell
+
+    def check_cells_to_place(self):
+        for cell_str in self.move.place_on:
+            cell = self.get_cell_by_str(cell_str)
+            if cell.block:
+                return False
+        return True
+
+    def place(self):
+        for cell_str in self.move.place_on:
+            self.get_cell_by_str(cell_str).full = True
+            for cell in Cell.get_cells_around(cell_str):
+                self.get_cell_by_str(cell).block = True
+
+        next(self.get_ship)
 
     def place_ships(self):
         available_ships = {1: 4, 2: 3, 3: 2, 4: 1}
         for ship, count in available_ships.items():
+            self.ship_to_place = ship
+            self.move.place_orientation = True
+            self.move.selected = 'J1'
+            self.move.right()
             for i in range(count):
-                pass
+                yield
+
+        self.ship_to_place = None
 
     def select(self):
         char = self.move.selected[0]
@@ -181,11 +271,12 @@ class Field:
         self.grid[char][num].shot()
 
     def test_move(self):
-        self.wait_for_place = True
+        next(self.get_ship)
         while True:
-            sys.stdout.write(self.view(is_my_field=True, update_cells={self.move.selected: 'YY'}))
+            selected_cells = {x: y for x, y in zip(self.move.place_on, (ship_str for i in range(len(self.move.place_on))))}
+            sys.stdout.write(self.view(is_my_field=True, update_cells=selected_cells))
             sys.stdout.flush()
-            time.sleep(0.01)
+            time.sleep(0.05)
 
     def view(self, is_my_field, update_cells={}):
         grid_dict = {}
