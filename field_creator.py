@@ -21,10 +21,24 @@ test_grid = '''
 10|  .  .  .  .  .  .  .  .  .  .
 '''
 
+grid_view2 = '''\r
+  | A| B| C| D| E| F| G| H| I| J|            | A| B| C| D| E| F| G| H| I| J|
+1 |{A1}.{B1}.{C1}.{D1}.{E1}.{F1}.{G1}.{H1}.{I1}.{J1}|          1 |{_A1}.{_B1}.{_C1}.{_D1}.{_E1}.{_F1}.{_G1}.{_H1}.{_I1}.{_J1}|
+2 |{A2}.{B2}.{C2}.{D2}.{E2}.{F2}.{G2}.{H2}.{I2}.{J2}|          2 |{_A2}.{_B2}.{_C2}.{_D2}.{_E2}.{_F2}.{_G2}.{_H2}.{_I2}.{_J2}|
+3 |{A3}.{B3}.{C3}.{D3}.{E3}.{F3}.{G3}.{H3}.{I3}.{J3}|          3 |{_A3}.{_B3}.{_C3}.{_D3}.{_E3}.{_F3}.{_G3}.{_H3}.{_I3}.{_J3}|
+4 |{A4}.{B4}.{C4}.{D4}.{E4}.{F4}.{G4}.{H4}.{I4}.{J4}|          4 |{_A4}.{_B4}.{_C4}.{_D4}.{_E4}.{_F4}.{_G4}.{_H4}.{_I4}.{_J4}|
+5 |{A5}.{B5}.{C5}.{D5}.{E5}.{F5}.{G5}.{H5}.{I5}.{J5}|          5 |{_A5}.{_B5}.{_C5}.{_D5}.{_E5}.{_F5}.{_G5}.{_H5}.{_I5}.{_J5}|
+6 |{A6}.{B6}.{C6}.{D6}.{E6}.{F6}.{G6}.{H6}.{I6}.{J6}|          6 |{_A6}.{_B6}.{_C6}.{_D6}.{_E6}.{_F6}.{_G6}.{_H6}.{_I6}.{_J6}|
+7 |{A7}.{B7}.{C7}.{D7}.{E7}.{F7}.{G7}.{H7}.{I7}.{J7}|          7 |{_A7}.{_B7}.{_C7}.{_D7}.{_E7}.{_F7}.{_G7}.{_H7}.{_I7}.{_J7}|
+8 |{A8}.{B8}.{C8}.{D8}.{E8}.{F8}.{G8}.{H8}.{I8}.{J8}|          8 |{_A8}.{_B8}.{_C8}.{_D8}.{_E8}.{_F8}.{_G8}.{_H8}.{_I8}.{_J8}|
+9 |{A9}.{B9}.{C9}.{D9}.{E9}.{F9}.{G9}.{H9}.{I9}.{J9}|          9 |{_A9}.{_B9}.{_C9}.{_D9}.{_E9}.{_F9}.{_G9}.{_H9}.{_I9}.{_J9}|
+10|{A10}.{B10}.{C10}.{D10}.{E10}.{F10}.{G10}.{H10}.{I10}.{J10}|          10|{_A10}.{_B10}.{_C10}.{_D10}.{_E10}.{_F10}.{_G10}.{_H10}.{_I10}.{_J10}|
+'''
+
 
 grid_view = '''\r
   | A| B| C| D| E| F| G| H| I| J|
-1 |{A1}.{B1}.{C1}.{D1}.{E1}.{F1}.{G1}.{H1}.{I1}.{J1}|
+1 |{A1}.{B1}.{C1}.{D1}.{E1}.{F1}.{G1}.{H1}.{I1}.{J1}| 
 2 |{A2}.{B2}.{C2}.{D2}.{E2}.{F2}.{G2}.{H2}.{I2}.{J2}|
 3 |{A3}.{B3}.{C3}.{D3}.{E3}.{F3}.{G3}.{H3}.{I3}.{J3}|
 4 |{A4}.{B4}.{C4}.{D4}.{E4}.{F4}.{G4}.{H4}.{I4}.{J4}|
@@ -248,7 +262,10 @@ class Field:
             for cell in Cell.get_cells_around(cell_str):
                 self.get_cell_by_str(cell).block = True
 
-        next(self.get_ship)
+        try:
+            next(self.get_ship)
+        except StopIteration:
+            pass
 
     def place_ships(self):
         available_ships = {1: 4, 2: 3, 3: 2, 4: 1}
@@ -278,6 +295,20 @@ class Field:
             sys.stdout.flush()
             time.sleep(0.05)
 
+    @classmethod
+    def test_game(cls):
+        players = [cls(), cls()]
+        for player in players:
+            next(player.get_ship)
+            while player.ship_to_place is not None:
+                selected_cells = {
+                    x: y for x, y in zip(player.move.place_on, (ship_str for i in range(len(player.move.place_on))))
+                }
+                clear()
+                sys.stdout.write(players[0].view_2(players[1], update_cells=selected_cells if player == players[0] else {}))
+                sys.stdout.write(players[1].view_2(players[0], update_cells=selected_cells if player == players[1] else {}))
+                time.sleep(0.05)
+
     def view(self, is_my_field, update_cells={}):
         grid_dict = {}
         for char, col in self.grid.items():
@@ -288,10 +319,31 @@ class Field:
         field_view = grid_view.format(**grid_dict)
         return field_view
 
+    def view_2(self, field_2, update_cells={}):
+        grid_dict = {}
+        for char, col in self.grid.items():
+            for num, cell in col.items():
+                grid_dict[char + str(num)] = cell.view(True)
+                grid_dict.update(update_cells)
 
-f = Field()
-f.test_move()
+        for char, col in field_2.grid.items():
+            for num, cell in col.items():
+                grid_dict['_' + char + str(num)] = cell.view(False)
+                grid_dict.update(update_cells)
+
+        field_view = grid_view2.format(**grid_dict)
+        return field_view
+
+
+class Game:
+    def __init__(self):
+        self.player1 = Field()
+        self.player2 = Field()
+
+
+# f = Field()
+# f.test_move()
 # print(f.view(True))
-
+Field.test_game()
 
 
