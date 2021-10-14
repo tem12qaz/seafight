@@ -35,7 +35,6 @@ grid_view2 = '''\r
 10|{A10}.{B10}.{C10}.{D10}.{E10}.{F10}.{G10}.{H10}.{I10}.{J10}|          10|{_A10}.{_B10}.{_C10}.{_D10}.{_E10}.{_F10}.{_G10}.{_H10}.{_I10}.{_J10}|
 '''
 
-
 grid_view = '''\r
   | A| B| C| D| E| F| G| H| I| J|
 1 |{A1}.{B1}.{C1}.{D1}.{E1}.{F1}.{G1}.{H1}.{I1}.{J1}| 
@@ -68,7 +67,7 @@ class Cell:
             return True
         else:
             return False
-    
+
     def view(self, is_my_field):
         if self.full:
             if self.hit:
@@ -154,9 +153,9 @@ class Move:
             return True
         else:
             if self.place_orientation:
-                for i in range(ship-1):
+                for i in range(ship - 1):
                     next_value = Cell.down(self.place_on[-1])
-                    if '1' in next_value:
+                    if '1' in next_value and '0' not in next_value:
                         self.place_on = old_place_on
                         if not new_selected:
                             self.place_orientation = not self.place_orientation
@@ -164,7 +163,7 @@ class Move:
                     self.place_on.append(next_value)
 
             else:
-                for i in range(ship-1):
+                for i in range(ship - 1):
                     next_value = Cell.right(self.place_on[-1])
                     if 'A' in next_value:
                         self.place_on = old_place_on
@@ -290,7 +289,8 @@ class Field:
     def test_move(self):
         next(self.get_ship)
         while True:
-            selected_cells = {x: y for x, y in zip(self.move.place_on, (ship_str for i in range(len(self.move.place_on))))}
+            selected_cells = {x: y for x, y in
+                              zip(self.move.place_on, (ship_str for i in range(len(self.move.place_on))))}
             sys.stdout.write(self.view(is_my_field=True, update_cells=selected_cells))
             sys.stdout.flush()
             time.sleep(0.05)
@@ -300,22 +300,32 @@ class Field:
         players = [cls(), cls()]
         for player in players:
             next(player.get_ship)
+
+            old1 = None
+            old2 = None
+
             while player.ship_to_place is not None:
                 selected_cells = {
                     x: y for x, y in zip(player.move.place_on, (ship_str for i in range(len(player.move.place_on))))
                 }
-                clear()
-                sys.stdout.write(players[0].view_2(players[1], update_cells=selected_cells if player == players[0] else {}))
-                sys.stdout.write(players[1].view_2(players[0], update_cells=selected_cells if player == players[1] else {}))
+                fields1 = (players[0].view_2(players[1], update_cells=selected_cells if player == players[0] else {}))
+                fields2 = (players[1].view_2(players[0], update_cells=selected_cells if player == players[1] else {}))
+
+                if fields1 != old1 or fields2 != old2:
+                    clear()
+                    print(fields1, fields2)
+
+                old1 = fields1
+                old2 = fields2
                 time.sleep(0.05)
 
     def view(self, is_my_field, update_cells={}):
         grid_dict = {}
         for char, col in self.grid.items():
             for num, cell in col.items():
-                grid_dict[char+str(num)] = cell.view(is_my_field)
+                grid_dict[char + str(num)] = cell.view(is_my_field)
                 grid_dict.update(update_cells)
-                
+
         field_view = grid_view.format(**grid_dict)
         return field_view
 
@@ -345,5 +355,3 @@ class Game:
 # f.test_move()
 # print(f.view(True))
 Field.test_game()
-
-
