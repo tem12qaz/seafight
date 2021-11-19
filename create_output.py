@@ -8,6 +8,7 @@ class Output:
     ENDC = '\033[0m'
     B = '\033[1m'
     u = '\033[4m'
+    clear = '\33modeJ'
 
     @classmethod
     def create(cls, text, mod):
