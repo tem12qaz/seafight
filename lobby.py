@@ -1,3 +1,2 @@
-import httpx
+class Lobby:
 
-with httpx.AsyncClient
