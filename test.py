@@ -28,7 +28,7 @@ def str_to_list(string: str, cols, rows):
 
 
 def animation_2(cols, rows, str_list, fill=' ', color=''):
-    center = cols//2 + 2
+    center = cols//2 + 1
     for i in range(center):
         for x in range(center):
             if x == fill * rows:
