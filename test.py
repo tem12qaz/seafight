@@ -31,9 +31,9 @@ def animation_2(cols, rows, str_list, fill=' ', color=''):
     center = cols//2 + 1
     for i in range(center):
         for x in range(center):
-            if x == fill * rows:
-                continue
             for y in range(rows):
+                if str_list[y] == fill * cols:
+                    continue
                 x_ = center - x
                 if x_-i >= 0:
                     try:
