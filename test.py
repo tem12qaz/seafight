@@ -41,7 +41,7 @@ def animation_2(cols, rows, str_list, fill=' ', color=''):
                     except:
                         print_on_x_y(x_ - i, y, fill, color=color)
 
-                x_ = x + center
+                x_ = x + center - 1
                 try:
                     print_on_x_y(x_ + i, y, str_list[y][x_], color=color)
                 except:
