@@ -6,12 +6,12 @@ import time
 from console_tools import clear
 from create_output import Output
 
-test_str = '\r{u}{l} ██████╗██╗   ██╗███╗   ███╗██████╗    ██████╗  █████╗ ███╗   ███╗███████╗{r}' \
-           '{l}██╔════╝╚██╗ ██╔╝████╗ ████║██╔══██╗  ██╔════╝ ██╔══██╗████╗ ████║██╔════╝{r}' \
-           '{l}╚█████╗  ╚████╔╝ ██╔████╔██║██████╦╝  ██║  ██╗ ███████║██╔████╔██║█████╗  {r}' \
-           '{l} ╚═══██╗  ╚██╔╝  ██║╚██╔╝██║██╔══██╗  ██║  ╚██╗██╔══██║██║╚██╔╝██║██╔══╝  {r}' \
-           '{l}██████╔╝   ██║   ██║ ╚═╝ ██║██████╦╝  ╚██████╔╝██║  ██║██║ ╚═╝ ██║███████╗{r}' \
-           '{l}╚═════╝    ╚═╝   ╚═╝     ╚═╝╚═════╝    ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝{r}{b}'
+test_str = '\r{u}{l} ██████╗██╗   ██╗███╗   ███╗██████╗      ██████╗  █████╗ ███╗   ███╗███████╗{r}' \
+                '{l}██╔════╝╚██╗ ██╔╝████╗ ████║██╔══██╗    ██╔════╝ ██╔══██╗████╗ ████║██╔════╝{r}' \
+                '{l}╚█████╗  ╚████╔╝ ██╔████╔██║██████╦╝    ██║  ██╗ ███████║██╔████╔██║█████╗  {r}' \
+                '{l} ╚═══██╗  ╚██╔╝  ██║╚██╔╝██║██╔══██╗    ██║  ╚██╗██╔══██║██║╚██╔╝██║██╔══╝  {r}' \
+                '{l}██████╔╝   ██║   ██║ ╚═╝ ██║██████╦╝    ╚██████╔╝██║  ██║██║ ╚═╝ ██║███████╗{r}' \
+                '{l}╚═════╝    ╚═╝   ╚═╝     ╚═╝╚═════╝      ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝{r}{b}'
 
 
 def print_on_x_y(x, y, symbol=' ', color=''):
@@ -28,24 +28,31 @@ def str_to_list(string: str, cols, rows):
 
 
 def animation_2(cols, rows, str_list, fill=' ', color=''):
-    center = cols//2 + 1
+    center = cols//2 + 2
+    right = {}
+    left = {}
     for i in range(center):
         for x in range(center):
             for y in range(rows):
                 if str_list[y] == fill * cols:
                     continue
                 x_ = center - x
-                if x_-i >= 0:
-                    try:
-                        print_on_x_y(x_ - i, y, str_list[y][x_], color=color)
-                    except:
-                        print_on_x_y(x_ - i, y, fill, color=color)
-
-                x_ = x + center - 1
                 try:
-                    print_on_x_y(x_ + i, y, str_list[y][x_], color=color)
-                except:
+                    if x_-i >= 0 and str_list[y][x_] != left.get(x_, y):
+                        print_on_x_y(x_ - i, y, str_list[y][x_], color=color)
+                        left[(x_, y)] = str_list[y][x_]
+                except IndexError:
+                    print_on_x_y(x_ - i, y, fill, color=color)
+                    left[(x_, y)] = fill
+
+                x_ = x + center - 2
+                try:
+                    if str_list[y][x_] != right.get(x_, y):
+                        print_on_x_y(x_ + i, y, str_list[y][x_], color=color)
+                        right[(x_, y)] = str_list[y][x_]
+                except IndexError:
                     print_on_x_y(x_ + i, y, fill, color=color)
+                    right[(x_, y)] = fill
 
 
 def animation(cols, rows, string=None, animation_color='', string_color='', width=25, char='░'):
