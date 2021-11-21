@@ -14,8 +14,11 @@ test_str = '\r{u}{l} ██████╗██╗   ██╗███╗   �
                 '{l}╚═════╝    ╚═╝   ╚═╝     ╚═╝╚═════╝      ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝{r}{b}'
 
 
-def print_on_x_y(x, y, symbol=' ', color=''):
-    print(f"{color}\033[{y};{x}H{symbol}\033[0m")
+test_str = '\r{u}{l}          ыыыыыыы     ыыыыыыы            {r}{b}'
+
+
+def print_on_x_y(x, y, symbol=' ', color='', rows=0):
+    print(f"{color}\033[{y};{x}H{symbol}\033[0m\033[{rows}A")
 
 
 def str_to_list(string: str, cols, rows):
@@ -90,8 +93,6 @@ def animation(cols, rows, string=None, animation_color='', string_color='', widt
                     print_on_x_y(x - width, y, ' ' if not string else string[y][x - width], string_color)
                 except:
                     print_on_x_y(x - width, y, ' ')
-        if i % 15 == 0:
-            time.sleep(0.000001)
 
     return string
 
@@ -136,5 +137,5 @@ def main():
         # print(getattr(Output, color) + format_str(test_str, columns, rows) + '\033[0m')
         # time.sleep(3333)
 
-
-main()
+if __name__ == '__main__':
+    main()
