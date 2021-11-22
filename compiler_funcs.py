@@ -35,6 +35,19 @@ def vector_plus(x, y, z, x2, y2, z2):
 
 
 @njit(fastmath=True)
+def flat_intersection(x, y, z, xn, yn, zn, x0, y0, z0):
+    if cos_vec(-x, -y, -z, xn, yn, zn) <= 0:
+        return None
+    param = (xn*x0 + yn*y0 + zn*z0)/(xn*x + yn*y + zn*z)
+    x = x*param
+    y = y*param
+    z = z*param
+    vec = norm(x, y, z)
+    reflection_vec = vector_rotate(*vec, *norm(xn, yn, zn), pi)
+    return reflection_vec
+
+
+@njit(fastmath=True)
 def vector_rotate(x, y, z, x2, y2, z2, angle):
     rotate_matrix = numpy.array(
         [

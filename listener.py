@@ -1,4 +1,4 @@
-from pynput import keyboard
+from pynput import keyboard, mouse
 
 
 def get_listener(table):
@@ -6,6 +6,7 @@ def get_listener(table):
     return listener
 
 
-def get_online_listener(func):
+def get_online_listener(func, func_m):
     listener = keyboard.Listener(on_press=func)
-    return listener
+    listener_m = mouse.Listener(on_move=func_m)
+    return listener, listener_m

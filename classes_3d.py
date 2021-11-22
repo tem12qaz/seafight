@@ -1,7 +1,7 @@
 import time
 
 import numpy as np
-from math import sqrt
+from math import sqrt, cos, sin
 
 from numba import int32, njit, float64
 from numba.experimental import jitclass
@@ -53,6 +53,48 @@ class Vec3:
         if length == 0:
             return self
         return Vec3(*norm(self.x, self.y, self.z, length))
+
+
+class Camera:
+    def __init__(self):
+        self.z_axis = 0
+        self.x = 0
+        self.z = 0
+        self.y = 0
+
+    def on_move(self, x, y):
+        self.z_axis = (x/4)/57.29
+
+    def on_press(self, key):
+        key_str = str(key)
+        if key_str == 'Key.right':
+            self.z_axis += 0.005
+
+        elif key_str == 'Key.left':
+            self.z_axis -= 0.005
+
+        # elif key_str == 'Key.up':
+        #     self.up()
+        #
+        # elif key_str == 'Key.down':
+        #     self.down()
+
+        elif key_str in ("'w'", "'W'"):
+            self.x += cos(self.z_axis)*1
+            self.y += sin(self.z_axis)*1
+
+        elif key_str in ("'s'", "'S'"):
+            self.x -= cos(self.z_axis) * 1
+            self.y -= sin(self.z_axis) * 1
+
+        elif key_str in ("'a'", "'A'"):
+            self.x += sin(self.z_axis) * 1
+            self.y -= cos(self.z_axis) * 1
+
+        elif key_str in ("'d'", "'D'"):
+            self.x -= sin(self.z_axis) * 1
+            self.y += cos(self.z_axis) * 1
+
 
 
 @njit(fastmath=True)
