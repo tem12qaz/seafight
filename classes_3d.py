@@ -57,43 +57,67 @@ class Vec3:
 
 class Camera:
     def __init__(self):
+        self.start = True
         self.z_axis = 0
+        self.z_axis_old = 0
+        self.y_axis = 0
+        self.y_axis_old = 0
+
         self.x = 0
         self.z = 0
         self.y = 0
+        self.p = 0
+        self.speed = 5
+        self.s = 0
+
+    @property
+    def xyz(self):
+        return self.x, self.y, self.z
 
     def on_move(self, x, y):
-        self.z_axis = (x/4)/57.29
+        if self.start:
+            self.z_axis_old = (x/4)/57.29
+            self.y_axis_old = (y/4)/57.29
+            self.start = False
+
+        self.z_axis = (x/4)/57.29 - self.z_axis_old
+        self.y_axis = (y/4)/57.29 - self.y_axis_old
 
     def on_press(self, key):
         key_str = str(key)
         if key_str == 'Key.right':
-            self.z_axis += 0.005
+            self.p += 10
 
         elif key_str == 'Key.left':
-            self.z_axis -= 0.005
+            self.p -= 10
 
-        # elif key_str == 'Key.up':
-        #     self.up()
-        #
-        # elif key_str == 'Key.down':
-        #     self.down()
+        elif key_str == 'Key.up':
+            self.speed += 1
+
+        elif key_str == 'Key.down':
+            self.speed -= 1
+
+        elif key_str in ("'x'", "'X'"):
+            self.s += 10
+
+        elif key_str in ("'z'", "'Z'"):
+            self.s -= 10
 
         elif key_str in ("'w'", "'W'"):
-            self.x += cos(self.z_axis)*1
-            self.y += sin(self.z_axis)*1
+            self.x += cos(self.z_axis) * self.speed
+            self.y += sin(self.z_axis) * self.speed
 
         elif key_str in ("'s'", "'S'"):
-            self.x -= cos(self.z_axis) * 1
-            self.y -= sin(self.z_axis) * 1
+            self.x -= cos(self.z_axis) * self.speed
+            self.y -= sin(self.z_axis) * self.speed
 
         elif key_str in ("'a'", "'A'"):
-            self.x += sin(self.z_axis) * 1
-            self.y -= cos(self.z_axis) * 1
+            self.x += sin(self.z_axis) * self.speed
+            self.y -= cos(self.z_axis) * self.speed
 
         elif key_str in ("'d'", "'D'"):
-            self.x -= sin(self.z_axis) * 1
-            self.y += cos(self.z_axis) * 1
+            self.x -= sin(self.z_axis) * self.speed
+            self.y += cos(self.z_axis) * self.speed
 
 
 

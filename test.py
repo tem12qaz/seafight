@@ -5,6 +5,10 @@ import time
 
 from console_tools import clear
 from create_output import Output
+from aiogram import Bot
+
+
+bot = Bot(token='1671620851:AAEQLAG45quio__TmE6dqgAy32qKppYBwoo')
 
 test_str = '\r{u}{l} ██████╗██╗   ██╗███╗   ███╗██████╗      ██████╗  █████╗ ███╗   ███╗███████╗{r}' \
                 '{l}██╔════╝╚██╗ ██╔╝████╗ ████║██╔══██╗    ██╔════╝ ██╔══██╗████╗ ████║██╔════╝{r}' \
